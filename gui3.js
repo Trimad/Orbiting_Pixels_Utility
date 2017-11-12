@@ -1,6 +1,6 @@
 function changeOrbitPhases() {
   orbitPhases = gui3.getValue("Orbit Phases");
-  redrawImg();
+  convertPixelsToObjects();
 }
 
 function changeOrbitRadius() {
@@ -13,7 +13,10 @@ function changeOrbitVelocity() {
   //Does not require redrawing the canvas
 }
 
-
+function changeMotion() {
+  convertPixelsToObjects();
+  motion = gui3.getValue("Motion Type").value;
+}
 
 function changeDebug() {
   debug = !debug;

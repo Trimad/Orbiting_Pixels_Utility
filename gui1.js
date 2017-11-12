@@ -2,8 +2,8 @@ function imgChosen(file) {
 
   var temp = URL.createObjectURL(gui1.getValue("Image Chooser"));
   gui1.setValue("Image", temp);
-  img = loadImage(temp, drawImg);
-  redrawImg();
+  img = loadImage(temp, convertPixelsToObjects);
+  convertPixelsToObjects();
 
   imageDropped = true;
 
@@ -33,7 +33,7 @@ function changeBackgroundColor() {
 
 function changeVScale() {
   vScale = gui1.getValue("Scale");
-  redrawImg();
+  convertPixelsToObjects();
 }
 
 function changeFlashingTextEnabled() {
@@ -41,7 +41,5 @@ function changeFlashingTextEnabled() {
 }
 
 function changeFlashingText() {
-
   flashingText = gui1.getValue("Flashing Text");
-
 }

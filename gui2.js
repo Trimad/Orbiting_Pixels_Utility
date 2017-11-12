@@ -6,9 +6,15 @@ function changeImageTintEnabled() {
   imageTintEnabled = !imageTintEnabled;
 }
 
-function changeBrightnessCutoff() {
-  brightnessCutoff = gui2.getValue("Brightness Cutoff");
-  redrawImg();
+function changeBlackCutoff() {
+  blackCutoff = gui2.getValue("Black Cutoff");
+  convertPixelsToObjects();
+}
+
+
+function changeWhiteCutoff() {
+  whiteCutoff = gui2.getValue("White Cutoff");
+  convertPixelsToObjects();
 }
 
 function changeLineEnabled() {
@@ -28,14 +34,9 @@ function changeShape() {
   shape = gui2.getValue("Shape").value;
 }
 
-function changeShapeWidth() {
-  shapeWidth = gui2.getValue("Shape Width");
+function changeShapeSize() {
+  shapeSize = gui2.getValue("Shape Size");
 }
-
-function changeShapeHeight() {
-  shapeHeight = gui2.getValue("Shape Height");
-}
-
 
 function changeStrokeEnabled() {
   strokeEnabled = !strokeEnabled;

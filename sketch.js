@@ -1,38 +1,47 @@
-//Image
-var img;
-var imageDropped = false;
-var imageEnabled = false;
+//Canvas Setup
+let img;
+let imageDropped = false;
+let imgBG;
+let imageBGDropped = false;
+let imagebackgroundEnabled = false;
+let backgroundColorEnabled = true;
+let backgroundColor = '#000000';
+let vScale = 5;
+let flashingTextEnabled = false;
+let flashingText = "Type a message here...";
 
-//Background Image
-var imgBG;
-var imageBGDropped = false;
-var imagebackgroundEnabled = false;
-var imageTintEnabled = false;
-var backgroundColorEnabled = false;
-var backgroundColor = '#000000';
+//Graphics
+let imageEnabled = false;
+let imageTintEnabled = false;
+let blackCutoff = 0;
+let whiteCutoff = 255;
+let lineEnabled = false;
+let lineWeight = 1;
+let shapeEnabled = false;
+let shape = ['curve', 'circle', 'triangle', 'square', 'pentagon', 'star'];
+let shapeSize = vScale * 3;
+let strokeEnabled = false;
 
-var brightnessCutoff = 0;
-var vScale = 4;
-var orbitPhases = 4;
-var orbitRadius = Math.pow(vScale, 2);
-var orbitVelocity = 0.1;
+//Motion
+let debug = false;
+let motion = ['elliptical', 'lorenz'];
+let orbitPhases = vScale;
+let orbitRadius = vScale*2;
+let orbitVelocity = 0.1;
 
-var debug = false;
-var lineEnabled = true;
-var lineWeight = 1;
-var shapeEnabled = false;
-var shape = ['circle', 'triangle', 'square', 'pentagon', 'star'];
-var shapeWidth = Math.pow(vScale, 2);
-var shapeHeight = Math.pow(vScale, 2);
-var strokeEnabled = false;
+//Frame Export
+let counter = 0;
+let drawFromScratch = false;
+let exportCalled = false;
+let framesToExport = 64;
 
-var flashingTextEnabled = false;
-var flashingText = "STILL PRESIDENT";
+//Misc
+var maxFR = 0;
 
 function setup() {
 
   createCanvas(0, 0);
-  frameRate(30);
+  //frameRate(30);
 
   imageMode(CENTER);
   ellipseMode(CENTER);
@@ -40,8 +49,8 @@ function setup() {
 
   QuickSettings.useExtStyleSheet();
 
-  //Setup
-  gui1 = QuickSettings.create(0, 0, "Canvas Setup")
+  //Canvas Setup Menu
+  gui1 = QuickSettings.create(windowWidth - 780, 10, "Canvas Setup")
     .addFileChooser("Image Chooser", "Choose a primary image...", "image/*", imgChosen)
     .addImage("Image", "")
     .addFileChooser("Background Chooser", "Choose a background image...", "image/*", imgBGChosen)
@@ -49,64 +58,79 @@ function setup() {
     .addBoolean('Enable Background Image', imagebackgroundEnabled, changeBackgroundImageEnabled)
     .addBoolean('Enable Background Color', backgroundColorEnabled, changeBackgroundColorEnabled)
     .addColor("Background Color", backgroundColor, changeBackgroundColor)
-    .addRange("Scale", 2, 8, vScale, 1, changeVScale)
+    .addRange("Scale", 1, 16, vScale, 1, changeVScale)
     .addBoolean('Enable Flashing Text', flashingTextEnabled, changeFlashingTextEnabled)
     .addText("Flashing Text", flashingText, changeFlashingText);
-
-  //Visual Menu
-  gui2 = QuickSettings.create(800, 0, "Graphics Menu")
+  //Graphics Menu
+  gui2 = QuickSettings.create(windowWidth - 520, 10, "Graphics Menu")
     .addBoolean('Enable Orbiting Image', imageEnabled, changeImageEnabled)
     .addBoolean("Enable Image Tint (UNSTABLE)", imageTintEnabled, changeImageTintEnabled)
-    .addRange("Brightness Cutoff", 0, 255, brightnessCutoff, 1, changeBrightnessCutoff)
+    .addRange("Black Cutoff", 0, 255, blackCutoff, 1, changeBlackCutoff)
+    .addRange("White Cutoff", 0, 255, whiteCutoff, 1, changeWhiteCutoff)
     .addBoolean("Enable Orbiting Line", lineEnabled, changeLineEnabled)
     .addRange("Line Weight", 1, 32, lineWeight, 1, changeLineWeight)
     .addBoolean('Enable Orbiting Shape', shapeEnabled, changeShapeEnabled)
     .addDropDown("Shape", shape, changeShape)
-    .addRange("Shape Width", 1, 1024, shapeWidth, 1, changeShapeWidth)
-    .addRange("Shape Height", 1, 1024, shapeHeight, 1, changeShapeHeight)
+    .addRange("Shape Size", 1, 512, shapeSize, 1, changeShapeSize)
     .addBoolean('Enable Line Stroke', strokeEnabled, changeStrokeEnabled);
   //Motion Menu
-  gui3 = QuickSettings.create(800, 500, "Motion Menu")
-    .addRange("Orbit Phases", 0, 180, orbitPhases, 1, changeOrbitPhases)
-    .addRange("Orbit Radius", 0, 4096, orbitRadius, 1, changeOrbitRadius)
-    .addRange("Orbit Velocity", 0, 1, orbitVelocity, 0.05, changeOrbitVelocity)
+  gui3 = QuickSettings.create(windowWidth - 260, 10, "Motion Menu")
+    .addDropDown("Motion Type", motion, changeMotion)
+    .addRange("Orbit Phases", 0, 90, orbitPhases, 1, changeOrbitPhases)
+    .addRange("Orbit Radius", 0, 512, orbitRadius, 1, changeOrbitRadius)
+    .addRange("Orbit Velocity", 0, 1, orbitVelocity, 0.01, changeOrbitVelocity)
     .addBoolean("debug", debug, changeDebug);
-
   //Frame Exporter Menu
-  gui4 = QuickSettings.create(800, 760, "Frame Exporter")
+  gui4 = QuickSettings.create(windowWidth - 260, 300, "Frame Exporter")
     .addBoolean('Draw From Scratch', drawFromScratch, changeDrawFromScratch)
     .addNumber("Number of Frames", 1, 128, 64, 1)
     .addButton("Export Frames", changeExportFrames);
 
+  //gui2.collapse();
+  //gui3.collapse();
+  //gui4.collapse();
+  //Hard-coded default motion, or else there is no motion upon loading an image.
+  motion = gui3.getValue("Motion Type").value;
+
 }
 
-function drawImg() {
+function windowResized() {
 
-  resizeCanvas(img.width * vScale, img.height * vScale);
+  background(255, 0, 0);
+  gui1.setPosition(windowWidth - 780, 10);
+  gui2.setPosition(windowWidth - 520, 10);
+  gui3.setPosition(windowWidth - 260, 10);
+  gui4.setPosition(windowWidth - 260, 300);
+
+}
+
+function convertPixelsToObjects() {
+
+  if (spinners != undefined) {
+    spinners.splice(0, spinners.length);
+  }
+
+  resizeCanvas(img.width, img.height);
 
   img.loadPixels();
 
-  for (var y = 0; y < img.height / vScale; y++) {
-    for (var x = 0; x < img.width / vScale; x++) {
+  for (let x = 0; x < img.width/vScale; x += vScale) {
+    for (let y = 0; y < img.height/vScale; y += vScale) {
 
-      var index = (x + y * img.width) * 4 * vScale;
-      var r = img.pixels[index + 0];
-      var g = img.pixels[index + 1];
-      var b = img.pixels[index + 2];
-      var bright = (r + g + b) / 3;
+      let index = (x + y * img.width) * 4 * vScale;
+      let arr = []; //Contains all information needed for the object
+      arr[0] = img.pixels[index + 0]; //Red
+      arr[1] = img.pixels[index + 1]; //Green
+      arr[2] = img.pixels[index + 2]; //Blue
+      arr[3] = (arr[0] + arr[1] + arr[2]) / 3; //Brightness
+      arr[4] = x * vScale; //x-position
+      arr[5] = y * vScale; //y-position
 
-      if (bright > brightnessCutoff) {
-        append(spinners, new Spinner(x * vScale * vScale, y * vScale * vScale, color(r, g, b), bright));
+      if (arr[3] >= blackCutoff && arr[3] <= whiteCutoff) {
+        append(spinners, new Spinner(arr));
       }
     }
   }
-}
-
-function redrawImg() {
-
-  spinners.splice(0, spinners.length);
-  drawImg();
-
 }
 
 function draw() {
@@ -121,23 +145,52 @@ function draw() {
       image(imgBG, width / 2, height / 2, width, height);
     }
 
-    for (var i = 0; i < spinners.length; i++) {
-      spinners[i].update();
+    /*
+        for (let i = 0; i < spinners.length; i++) {
+          spinners[i].drawSpinner();
+        }
+    */
+
+    for (let Spinner of spinners) {
+      Spinner.drawSpinner();
     }
-
   }
 
-  if (flashingTextEnabled && frameCount % 10 < 5) {
-    textSize(width / flashingText.length * 2);
-    textAlign(CENTER, CENTER);
-    textStyle(BOLD);
-    stroke(0);
-    strokeWeight(5);
-    fill(255);
-    textFont("Impact");
-    text(flashingText, width / 2, height / 2);
+  if (flashingTextEnabled) {
+    if (frameCount % 10 < 5) {
+      textSize(width / flashingText.length * 2);
+      textAlign(CENTER, CENTER);
+      textStyle(BOLD);
+      stroke(0);
+      strokeWeight(5);
+      fill(255);
+      textFont("Impact");
+      text(flashingText, width / 2, height / 2);
+    }
+  }
+  //ffmpeg -r 60 -f image2 -s 1920x1080 -i %04d.png -vcodec libx264 -crf 1 -pix_fmt yuv420p test.mp4
+  if (exportCalled) {
+    framesToExport = gui4.getValue("Number of Frames");
+    if (drawFromScratch) {
+      background(backgroundColor);
+      changeDrawFromScratch();
+    }
+    saveCanvas(nf(counter, 4, 0), 'png');
+    counter++;
+    if (counter == framesToExport) {
+      exportCalled = false;
+      counter = 0;
+    }
   }
 
-  exportFrames();
-
+  /*
+  stroke(255);
+  fill(255);
+    if (imageDropped && frameRate() > maxFR) {
+      if (frameCount % 60 === 0) {
+        maxFR = frameRate();
+      }
+    }
+    text(maxFR, 16, 16);
+    */
 }
