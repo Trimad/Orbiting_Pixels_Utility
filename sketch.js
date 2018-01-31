@@ -26,7 +26,7 @@ let strokeEnabled = false;
 let debug = false;
 let motion = ['elliptical', 'lorenz'];
 let orbitPhases = vScale;
-let orbitRadius = vScale*2;
+let orbitRadius = vScale * 2;
 let orbitVelocity = 0.1;
 
 //Frame Export
@@ -114,8 +114,8 @@ function convertPixelsToObjects() {
 
   img.loadPixels();
 
-  for (let x = 0; x < img.width/vScale; x += vScale) {
-    for (let y = 0; y < img.height/vScale; y += vScale) {
+  for (let x = 0; x < img.width / vScale; x += vScale) {
+    for (let y = 0; y < img.height / vScale; y += vScale) {
 
       let index = (x + y * img.width) * 4 * vScale;
       let arr = []; //Contains all information needed for the object
